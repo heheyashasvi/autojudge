@@ -1,0 +1,5 @@
+{
+  "name": "AutoJudge: Problem Difficulty Predictor",
+  "description": "An intelligent system that analyzes programming problem descriptions to predict difficulty classification (Easy/Medium/Hard) and numerical difficulty scores using advanced text analysis.",
+  "requestFramePermissions": []
+}

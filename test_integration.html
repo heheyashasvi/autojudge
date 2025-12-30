@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoJudge ML Backend Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f8fafc;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e293b;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #374151;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+        button {
+            background: #6366f1;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: #5855eb;
+        }
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #6366f1;
+            background: #f8fafc;
+        }
+        .error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+            color: #dc2626;
+        }
+        .success {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+            color: #059669;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 AutoJudge ML Backend Test</h1>
+        <p>Test the custom ML backend integration for difficulty prediction.</p>
+        
+        <form id="problemForm">
+            <div class="form-group">
+                <label for="title">Problem Title:</label>
+                <input type="text" id="title" value="Two Sum" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="description">Problem Description:</label>
+                <textarea id="description" rows="4" required>Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="input_description">Input Description:</label>
+                <textarea id="input_description" rows="2" required>An array of integers and a single integer target.</textarea>
+            </div>
+            
+            <div class="form-group">
+                <label for="output_description">Output Description:</label>
+                <textarea id="output_description" rows="2" required>Two indices of the numbers.</textarea>
+            </div>
+            
+            <button type="submit" id="predictBtn">
+                <span id="btnText">🔮 Predict Difficulty</span>
+                <span id="btnLoading" class="loading" style="display: none;"></span>
+            </button>
+        </form>
+        
+        <div id="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        const ML_BACKEND_URL = "http://localhost:5001";
+        
+        document.getElementById('problemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('predictBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoading = document.getElementById('btnLoading');
+            const resultDiv = document.getElementById('result');
+            
+            // Show loading state
+            btn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-block';
+            resultDiv.style.display = 'none';
+            
+            try {
+                const formData = {
+                    title: document.getElementById('title').value,
+                    description: document.getElementById('description').value,
+                    input_description: document.getElementById('input_description').value,
+                    output_description: document.getElementById('output_description').value
+                };
+                
+                const response = await fetch(`${ML_BACKEND_URL}/predict`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Prediction Successful!</h3>
+                            <p><strong>Difficulty Class:</strong> ${result.difficulty_class}</p>
+                            <p><strong>Difficulty Score:</strong> ${result.difficulty_score}/10</p>
+                            <p><strong>Confidence:</strong> ${result.confidence ? (result.confidence * 100).toFixed(1) + '%' : 'N/A'}</p>
+                            <p><strong>Processing Time:</strong> ${result.processing_time}s</p>
+                        </div>
+                    `;
+                    resultDiv.className = 'result success';
+                } else {
+                    throw new Error(result.error || 'Prediction failed');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Error</h3>
+                        <p>${error.message}</p>
+                        <p><small>Make sure the ML backend is running on port 5001</small></p>
+                    </div>
+                `;
+                resultDiv.className = 'result error';
+            } finally {
+                // Reset button state
+                btn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+                resultDiv.style.display = 'block';
+            }
+        });
+        
+        // Test backend health on page load
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch(`${ML_BACKEND_URL}/health`);
+                const health = await response.json();
+                
+                if (health.status === 'healthy' && health.models_loaded) {
+                    console.log('✅ ML Backend is healthy and models are loaded');
+                } else {
+                    console.warn('⚠️ ML Backend health check failed:', health);
+                }
+            } catch (error) {
+                console.error('❌ Cannot connect to ML Backend:', error);
+            }
+        });
+    </script>
+</body>
+</html>

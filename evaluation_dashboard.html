@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoJudge Model Evaluation Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+        
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .metric-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .metric-card h3 {
+            color: #1e293b;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .metric-card .icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+        
+        .classification-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .regression-icon {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+        
+        .dataset-icon {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+        
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        
+        .metric-row:last-child {
+            border-bottom: none;
+        }
+        
+        .metric-label {
+            font-weight: 600;
+            color: #475569;
+        }
+        
+        .metric-value {
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 1.1rem;
+        }
+        
+        .confusion-matrix {
+            grid-column: 1 / -1;
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .matrix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        .matrix-table th,
+        .matrix-table td {
+            padding: 15px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            font-weight: 600;
+        }
+        
+        .matrix-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .matrix-table td {
+            font-size: 1.1rem;
+            color: #1e293b;
+        }
+        
+        .matrix-cell {
+            position: relative;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 8px;
+            margin: 2px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 60px;
+            color: white;
+        }
+        
+        .loading .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .class-metrics {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .class-metric {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        
+        .class-metric .class-name {
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .class-metric .metrics {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.4;
+        }
+        
+        .refresh-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>📊 AutoJudge Model Evaluation</h1>
+            <p>Comprehensive performance metrics for classification and regression models</p>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <h3>Loading evaluation metrics...</h3>
+        </div>
+        
+        <div id="error" class="error" style="display: none;"></div>
+        
+        <div id="metrics" style="display: none;">
+            <div class="metrics-grid">
+                <!-- Classification Metrics -->
+                <div class="metric-card">
+                    <h3>
+                        <div class="icon classification-icon">🎯</div>
+                        Classification Metrics
+                    </h3>
+                    <div class="metric-row">
+                        <span class="metric-label">Overall Accuracy</span>
+                        <span class="metric-value" id="accuracy">-</span>
+                    </div>
+                    <div class="class-metrics" id="classMetrics">
+                        <!-- Class-specific metrics will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Regression Metrics -->
+                <div class="metric-card">
+                    <h3>
+                        <div class="icon regression-icon">📈</div>
+                        Regression Metrics
+                    </h3>
+                    <div class="metric-row">
+                        <span class="metric-label">Mean Absolute Error (MAE)</span>
+                        <span class="metric-value" id="mae">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Root Mean Square Error (RMSE)</span>
+                        <span class="metric-value" id="rmse">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">R² Score</span>
+                        <span class="metric-value" id="r2">-</span>
+                    </div>
+                </div>
+                
+                <!-- Dataset Info -->
+                <div class="metric-card">
+                    <h3>
+                        <div class="icon dataset-icon">📊</div>
+                        Dataset Information
+                    </h3>
+                    <div class="metric-row">
+                        <span class="metric-label">Test Samples</span>
+                        <span class="metric-value" id="testSamples">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Features</span>
+                        <span class="metric-value" id="features">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Easy Problems</span>
+                        <span class="metric-value" id="easyCount">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Medium Problems</span>
+                        <span class="metric-value" id="mediumCount">-</span>
+                    </div>
+                    <div class="metric-row">
+                        <span class="metric-label">Hard Problems</span>
+                        <span class="metric-value" id="hardCount">-</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Confusion Matrix -->
+            <div class="confusion-matrix">
+                <h3>
+                    <div class="icon classification-icon">🔢</div>
+                    Confusion Matrix
+                </h3>
+                <table class="matrix-table" id="confusionMatrix">
+                    <!-- Matrix will be populated here -->
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <button class="refresh-btn" onclick="loadMetrics()" title="Refresh Metrics">
+        🔄
+    </button>
+
+    <script>
+        const ML_BACKEND_URL = "http://localhost:5001";
+        
+        async function loadMetrics() {
+            const loading = document.getElementById('loading');
+            const error = document.getElementById('error');
+            const metrics = document.getElementById('metrics');
+            
+            loading.style.display = 'block';
+            error.style.display = 'none';
+            metrics.style.display = 'none';
+            
+            try {
+                const response = await fetch(`${ML_BACKEND_URL}/evaluate`);
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Evaluation failed');
+                }
+                
+                const results = data.evaluation_results;
+                
+                // Update classification metrics
+                document.getElementById('accuracy').textContent = (results.classification.accuracy * 100).toFixed(1) + '%';
+                
+                // Update class-specific metrics
+                const classMetrics = document.getElementById('classMetrics');
+                classMetrics.innerHTML = '';
+                
+                ['Easy', 'Medium', 'Hard'].forEach(className => {
+                    if (results.classification.precision[className]) {
+                        const div = document.createElement('div');
+                        div.className = 'class-metric';
+                        div.innerHTML = `
+                            <div class="class-name">${className}</div>
+                            <div class="metrics">
+                                P: ${(results.classification.precision[className] * 100).toFixed(1)}%<br>
+                                R: ${(results.classification.recall[className] * 100).toFixed(1)}%<br>
+                                F1: ${(results.classification.f1_score[className] * 100).toFixed(1)}%
+                            </div>
+                        `;
+                        classMetrics.appendChild(div);
+                    }
+                });
+                
+                // Update regression metrics
+                document.getElementById('mae').textContent = results.regression.mae.toFixed(3);
+                document.getElementById('rmse').textContent = results.regression.rmse.toFixed(3);
+                document.getElementById('r2').textContent = results.regression.r2_score.toFixed(3);
+                
+                // Update dataset info
+                document.getElementById('testSamples').textContent = results.dataset_info.test_samples.toLocaleString();
+                document.getElementById('features').textContent = results.dataset_info.features.toLocaleString();
+                document.getElementById('easyCount').textContent = results.dataset_info.class_distribution.Easy.toLocaleString();
+                document.getElementById('mediumCount').textContent = results.dataset_info.class_distribution.Medium.toLocaleString();
+                document.getElementById('hardCount').textContent = results.dataset_info.class_distribution.Hard.toLocaleString();
+                
+                // Update confusion matrix
+                const matrix = results.classification.confusion_matrix;
+                const matrixTable = document.getElementById('confusionMatrix');
+                
+                let tableHTML = `
+                    <tr>
+                        <th></th>
+                        <th>Predicted Easy</th>
+                        <th>Predicted Medium</th>
+                        <th>Predicted Hard</th>
+                    </tr>
+                `;
+                
+                matrix.labels.forEach((trueLabel, i) => {
+                    tableHTML += `<tr><th>Actual ${trueLabel}</th>`;
+                    matrix.matrix[i].forEach(value => {
+                        tableHTML += `<td><div class="matrix-cell">${value}</div></td>`;
+                    });
+                    tableHTML += '</tr>';
+                });
+                
+                matrixTable.innerHTML = tableHTML;
+                
+                loading.style.display = 'none';
+                metrics.style.display = 'block';
+                
+            } catch (err) {
+                console.error('Error loading metrics:', err);
+                loading.style.display = 'none';
+                error.style.display = 'block';
+                error.textContent = `Error: ${err.message}. Make sure the ML backend is running on port 5001.`;
+            }
+        }
+        
+        // Load metrics on page load
+        window.addEventListener('load', loadMetrics);
+    </script>
+</body>
+</html>
