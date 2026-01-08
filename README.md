@@ -14,7 +14,7 @@ A machine learning system that automatically assesses programming problem diffic
 
 ## 📊 Model Performance
 
-- **Dataset**: 4,112 programming problems with balanced distribution
+- **Dataset**: [4,112 programming problems](backend/data/problems_data.jsonl) sourced from [Open Kattis](https://open.kattis.com/), with balanced distribution
 - **Training Set**: 3,289 problems (80%)
 - **Test Set**: 823 problems (20%)
 - **Classification Accuracy**: 51.6%
