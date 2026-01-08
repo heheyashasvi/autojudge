@@ -2,7 +2,7 @@
 
 A machine learning system that automatically assesses programming problem difficulty using both classification and regression models. The system processes textual problem descriptions and provides dual predictions: categorical difficulty levels (Easy/Medium/Hard) and numerical difficulty scores (0-10).
 
-![AutoJudge Demo](preview.html)
+
 
 ## 🎯 Key Features
 
