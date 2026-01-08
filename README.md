@@ -78,38 +78,17 @@ Open `evaluation_dashboard.html` in your browser to see:
 3. Click "Analyze Difficulty" to get predictions
 4. View both categorical (Easy/Medium/Hard) and numerical (0-10) difficulty scores
 
-## 🏗️ Architecture
-
-### Frontend (React + TypeScript)
+### Project Structure (Demo View)
 ```
-├── App.tsx                 # Main application component
-├── components/
-│   ├── Header.tsx         # Application header
-│   ├── ProblemForm.tsx    # Problem input form
-│   └── ResultDisplay.tsx  # Prediction results display
-├── services/
-│   └── mlService.ts       # ML backend API integration
-└── types.ts               # TypeScript type definitions
-```
-
-### Backend (Python + Flask)
-```
-backend/
-├── app.py                 # Flask API server
-├── ml/
-│   ├── data_models.py     # Data structures and validation
-│   ├── dataset_loader.py  # Dataset processing utilities
-│   ├── feature_extraction.py # TF-IDF and statistical features
-│   └── models.py          # ML model implementations
-├── models/                # Trained model artifacts
-│   ├── classifier.joblib  # Random Forest classifier
-│   ├── regressor.joblib   # Random Forest regressor
-│   ├── feature_extractor.joblib # TF-IDF vectorizer
-│   └── metadata.json     # Model performance metrics
-└── data/                  # Training datasets
-    ├── problems_data.jsonl # Original dataset
-    ├── train_dataset.jsonl # Training split
-    └── test_dataset.jsonl  # Test split
+autojudge/
+├── App.tsx                    # Web App File (Frontend Interface)
+├── backend/
+│   ├── app.py                 # Web App File (Backend API)
+│   ├── ml/
+│   │   ├── dataset_loader.py  # Preprocessing File (Data Cleaning)
+│   │   ├── feature_extraction.py # Preprocessing File (Feature Extraction)
+│   │   └── models.py          # Model Files (Training & Evaluation)
+│   └── models/                # Saved Model Artifacts
 ```
 
 ## 🔬 Technical Approach
