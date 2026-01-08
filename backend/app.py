@@ -11,6 +11,8 @@ import time
 
 from ml.data_models import ProblemText, create_problem_from_dict
 from ml.models import AutoJudgePredictor
+from ml.improved_models import ImprovedAutoJudgePredictor
+from ml.improved_feature_extraction import ImprovedFeatureExtractor
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,10 +25,11 @@ CORS(app)  # Enable CORS for React frontend
 predictor = None
 feature_extractor = None
 model_loaded = False
+model_version = "original"  # Track which model version is loaded
 
 def load_models():
-    """Load trained models on startup."""
-    global predictor, feature_extractor, model_loaded
+    """Load trained models on startup. Try improved models first, fallback to original."""
+    global predictor, feature_extractor, model_loaded, model_version
     
     try:
         models_dir = Path("models")
@@ -34,23 +37,42 @@ def load_models():
             logger.error("Models directory not found. Please train models first.")
             return False
         
-        # Load predictor
+        # Try to load improved models first
+        improved_classifier_path = models_dir / "improved_classifier.joblib"
+        improved_feature_extractor_path = models_dir / "improved_feature_extractor.joblib"
+        
+        if improved_classifier_path.exists() and improved_feature_extractor_path.exists():
+            logger.info("Loading improved models...")
+            
+            # Load improved predictor
+            predictor = ImprovedAutoJudgePredictor()
+            if predictor.load_models():
+                # Load improved feature extractor
+                feature_extractor = joblib.load(improved_feature_extractor_path)
+                model_version = "improved"
+                model_loaded = True
+                logger.info("✅ Improved models loaded successfully")
+                return True
+        
+        # Fallback to original models
+        logger.info("Loading original models...")
         predictor = AutoJudgePredictor()
         if not predictor.load_models():
             logger.error("Failed to load ML models")
             return False
         
-        # Load feature extractor
+        # Load original feature extractor
         feature_extractor_path = models_dir / "feature_extractor.joblib"
         if feature_extractor_path.exists():
             feature_extractor = joblib.load(feature_extractor_path)
+            model_version = "original"
             logger.info("Feature extractor loaded successfully")
         else:
             logger.error("Feature extractor not found")
             return False
         
         model_loaded = True
-        logger.info("✅ All models loaded successfully")
+        logger.info("✅ Original models loaded successfully")
         return True
         
     except Exception as e:
@@ -63,7 +85,8 @@ def health_check():
     return jsonify({
         "status": "healthy", 
         "service": "autojudge-ml-backend",
-        "models_loaded": model_loaded
+        "models_loaded": model_loaded,
+        "model_version": model_version
     })
 
 @app.route('/predict', methods=['POST'])
@@ -241,6 +264,80 @@ def evaluate_models():
             "success": False
         }), 500
 
+@app.route('/switch-model', methods=['POST'])
+def switch_model():
+    """Switch between original and improved models."""
+    global predictor, feature_extractor, model_loaded, model_version
+    
+    try:
+        data = request.get_json()
+        target_version = data.get('version', 'improved')
+        
+        if target_version not in ['original', 'improved']:
+            return jsonify({
+                "error": "Invalid model version. Use 'original' or 'improved'",
+                "success": False
+            }), 400
+        
+        if target_version == model_version:
+            return jsonify({
+                "message": f"Already using {model_version} model",
+                "current_version": model_version,
+                "success": True
+            })
+        
+        # Load the requested model version
+        models_dir = Path("models")
+        
+        if target_version == 'improved':
+            improved_classifier_path = models_dir / "improved_classifier.joblib"
+            improved_feature_extractor_path = models_dir / "improved_feature_extractor.joblib"
+            
+            if not (improved_classifier_path.exists() and improved_feature_extractor_path.exists()):
+                return jsonify({
+                    "error": "Improved models not found. Please train improved models first.",
+                    "success": False
+                }), 404
+            
+            # Load improved models
+            predictor = ImprovedAutoJudgePredictor()
+            if predictor.load_models():
+                feature_extractor = joblib.load(improved_feature_extractor_path)
+                model_version = "improved"
+                logger.info("Switched to improved models")
+            else:
+                return jsonify({
+                    "error": "Failed to load improved models",
+                    "success": False
+                }), 500
+        
+        else:  # original
+            # Load original models
+            predictor = AutoJudgePredictor()
+            if predictor.load_models():
+                feature_extractor_path = models_dir / "feature_extractor.joblib"
+                feature_extractor = joblib.load(feature_extractor_path)
+                model_version = "original"
+                logger.info("Switched to original models")
+            else:
+                return jsonify({
+                    "error": "Failed to load original models",
+                    "success": False
+                }), 500
+        
+        return jsonify({
+            "message": f"Successfully switched to {model_version} model",
+            "current_version": model_version,
+            "success": True
+        })
+        
+    except Exception as e:
+        logger.error(f"Error switching models: {e}")
+        return jsonify({
+            "error": f"Model switch failed: {str(e)}",
+            "success": False
+        }), 500
+
 @app.route('/model-info', methods=['GET'])
 def model_info():
     """Get information about loaded models."""
@@ -251,14 +348,22 @@ def model_info():
         }), 503
     
     try:
-        # Load metadata
-        metadata_path = Path("models/metadata.json")
+        # Load metadata based on current model version
+        if model_version == "improved":
+            metadata_path = Path("models/improved_metadata.json")
+        else:
+            metadata_path = Path("models/metadata.json")
+            
         if metadata_path.exists():
             import json
             with open(metadata_path) as f:
                 metadata = json.load(f)
+            metadata["current_model_version"] = model_version
         else:
-            metadata = {"message": "No metadata available"}
+            metadata = {
+                "message": "No metadata available",
+                "current_model_version": model_version
+            }
         
         return jsonify({
             "model_info": metadata,

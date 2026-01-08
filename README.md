@@ -261,3 +261,14 @@ For questions or suggestions, please open an issue or contact the development te
 ---
 
 **AutoJudge** - Making programming problem difficulty assessment objective and automated.
+
+## 🎥 Demo Video
+
+Watch a quick demonstration of AutoJudge in action:
+[Link to Demo Video](YOUR_VIDEO_LINK_HERE)
+
+## 👤 Author
+
+**Yashasvi**  
+[GitHub Profile](https://github.com/heheyashasvi)
+```

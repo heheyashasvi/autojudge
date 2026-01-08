@@ -1,0 +1,25 @@
+{
+  "model_version": "improved_v1.0_fast",
+  "training_samples": 788,
+  "validation_samples": 198,
+  "test_samples": 411,
+  "features": 1032,
+  "best_algorithm": "gradient_boosting",
+  "test_accuracy": 0.41605839416058393,
+  "test_r2": -0.09254753550218942,
+  "test_mae": 1.935328506371919,
+  "test_rmse": 2.298185071426385,
+  "accuracy_improvement": -10.034160583941604,
+  "alignment_rate": 1.0,
+  "class_distribution": {
+    "Easy": 77,
+    "Medium": 140,
+    "Hard": 194
+  },
+  "training_time_minutes": 0.5932565649350484,
+  "hyperparameter_tuning": false,
+  "feature_engineering": "enhanced",
+  "prediction_alignment": true,
+  "dataset_reduction": "30% train, 50% test",
+  "fast_mode": true
+}
