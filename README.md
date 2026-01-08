@@ -1,6 +1,10 @@
 # AutoJudge: Programming Problem Difficulty Predictor
+    
+This project uses Machine Learning to automatically predict how hard a competitive programming problem is. It looks at the problem text (description, input/output) and predicts:
+1.  **Difficulty Class**: Is it Easy, Medium, or Hard?
+2.  **Difficulty Score**: A number from 0-10 (e.g., 2.3 or 8.9).
 
-A machine learning system that automatically assesses programming problem difficulty using both classification and regression models. The system processes textual problem descriptions and provides dual predictions: categorical difficulty levels (Easy/Medium/Hard) and numerical difficulty scores (0-10).
+I built this to see if we can use NLP to grade problems objectively.
 
 
 
@@ -215,18 +219,6 @@ COPY . .
 EXPOSE 5000
 CMD ["python", "app.py"]
 ```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 

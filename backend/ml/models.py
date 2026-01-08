@@ -17,38 +17,25 @@ logger = logging.getLogger(__name__)
 
 class DifficultyClassifier:
     """
-    Random Forest classifier for difficulty prediction.
+    Random Forest classifier for difficulty prediction (Easy/Medium/Hard).
     """
     
     def __init__(self, n_estimators: int = 300, random_state: int = 42):
-        """
-        Initialize classifier.
-        
-        Args:
-            n_estimators: Number of trees in the forest
-            random_state: Random seed for reproducibility
-        """
         self.model = RandomForestClassifier(
             n_estimators=n_estimators,
             random_state=random_state,
             max_depth=None,
             min_samples_split=2,
             min_samples_leaf=1,
-            class_weight='balanced',  # Handle class imbalance
-            oob_score=True  # Enable OOB for stacking
+            class_weight='balanced',
+            oob_score=True  # Needed for stacking
         )
         self.is_trained = False
         self.classes = ['Easy', 'Medium', 'Hard']
     
     def train(self, features: np.ndarray, labels: List[str]) -> None:
-        """
-        Train the classifier.
-        
-        Args:
-            features: Feature matrix
-            labels: Class labels
-        """
-        logger.info(f"Training classifier with {features.shape[0]} samples, {features.shape[1]} features")
+        """Trains the Random Forest model on feature matrix."""
+        logger.info(f"Training classifier with {features.shape[0]} samples")
         
         self.model.fit(features, labels)
         self.is_trained = True
@@ -56,15 +43,7 @@ class DifficultyClassifier:
         logger.info("Classifier training completed")
     
     def predict(self, features: np.ndarray) -> List[str]:
-        """
-        Predict difficulty classes.
-        
-        Args:
-            features: Feature matrix
-            
-        Returns:
-            List of predicted classes
-        """
+        """Returns predicted class labels (Easy/Medium/Hard)."""
         if not self.is_trained:
             raise ValueError("Model must be trained before prediction")
         
@@ -132,17 +111,10 @@ class DifficultyClassifier:
 
 class DifficultyRegressor:
     """
-    Gradient Boosting regressor for difficulty score prediction.
+    Gradient Boosting regressor for score prediction (0-10).
     """
     
     def __init__(self, n_estimators: int = 500, random_state: int = 42):
-        """
-        Initialize regressor.
-        
-        Args:
-            n_estimators: Number of boosting stages to perform
-            random_state: Random seed for reproducibility
-        """
         self.model = GradientBoostingRegressor(
             n_estimators=n_estimators,
             learning_rate=0.05,
@@ -155,14 +127,8 @@ class DifficultyRegressor:
         self.is_trained = False
     
     def train(self, features: np.ndarray, scores: List[float]) -> None:
-        """
-        Train the regressor.
-        
-        Args:
-            features: Feature matrix
-            scores: Difficulty scores
-        """
-        logger.info(f"Training regressor with {features.shape[0]} samples, {features.shape[1]} features")
+        """Trains the Gradient Boosting regressor."""
+        logger.info(f"Training regressor with {features.shape[0]} samples")
         
         self.model.fit(features, scores)
         self.is_trained = True
@@ -170,15 +136,7 @@ class DifficultyRegressor:
         logger.info("Regressor training completed")
     
     def predict(self, features: np.ndarray) -> List[float]:
-        """
-        Predict difficulty scores.
-        
-        Args:
-            features: Feature matrix
-            
-        Returns:
-            List of predicted scores
-        """
+        """Returns predicted difficulty scores, clipped to [0, 10]."""
         if not self.is_trained:
             raise ValueError("Model must be trained before prediction")
         

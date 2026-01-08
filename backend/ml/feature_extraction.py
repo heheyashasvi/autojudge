@@ -110,16 +110,9 @@ class FeatureExtractor:
         
         return np.array(features, dtype=float)
     
+    
     def fit_transform(self, problems: List[ProblemText]) -> np.ndarray:
-        """
-        Fit the feature extractor and transform problems.
-        
-        Args:
-            problems: List of problem text objects
-            
-        Returns:
-            Feature matrix
-        """
+        """Fits vectorizer and returns feature matrix for training data."""
         # Extract combined text for TF-IDF
         combined_texts = [problem.get_combined_text() for problem in problems]
         
@@ -141,15 +134,26 @@ class FeatureExtractor:
         return combined_features
     
     def transform(self, problems: List[ProblemText]) -> np.ndarray:
-        """
-        Transform problems using fitted extractor.
+        """Transforms new problems into feature vectors."""
+        if not self.is_fitted:
+            raise ValueError("Feature extractor must be fitted before transform")
         
-        Args:
-            problems: List of problem text objects
-            
-        Returns:
-            Feature matrix
-        """
+        # Extract combined text for TF-IDF
+        combined_texts = [problem.get_combined_text() for problem in problems]
+        
+        # Transform TF-IDF
+        tfidf_features = self.tfidf_vectorizer.transform(combined_texts).toarray()
+        
+        # Extract statistical features
+        statistical_features = np.array([
+            self.extract_statistical_features(problem) 
+            for problem in problems
+        ])
+        
+        # Combine features
+        combined_features = np.hstack([tfidf_features, statistical_features])
+        
+        return combined_features
         if not self.is_fitted:
             raise ValueError("Feature extractor must be fitted before transform")
         
