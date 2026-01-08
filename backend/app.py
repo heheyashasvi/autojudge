@@ -37,42 +37,25 @@ def load_models():
             logger.error("Models directory not found. Please train models first.")
             return False
         
-        # Try to load improved models first
-        improved_classifier_path = models_dir / "improved_classifier.joblib"
-        improved_feature_extractor_path = models_dir / "improved_feature_extractor.joblib"
-        
-        if improved_classifier_path.exists() and improved_feature_extractor_path.exists():
-            logger.info("Loading improved models...")
-            
-            # Load improved predictor
-            predictor = ImprovedAutoJudgePredictor()
-            if predictor.load_models():
-                # Load improved feature extractor
-                feature_extractor = joblib.load(improved_feature_extractor_path)
-                model_version = "improved"
-                model_loaded = True
-                logger.info("✅ Improved models loaded successfully")
-                return True
-        
-        # Fallback to original models
-        logger.info("Loading original models...")
+        # Load standard models (which are now the balanced ones)
+        logger.info("Loading standard retrained models...")
         predictor = AutoJudgePredictor()
         if not predictor.load_models():
             logger.error("Failed to load ML models")
             return False
         
-        # Load original feature extractor
+        # Load feature extractor
         feature_extractor_path = models_dir / "feature_extractor.joblib"
         if feature_extractor_path.exists():
             feature_extractor = joblib.load(feature_extractor_path)
-            model_version = "original"
+            model_version = "balanced_standard"
             logger.info("Feature extractor loaded successfully")
         else:
             logger.error("Feature extractor not found")
             return False
         
         model_loaded = True
-        logger.info("✅ Original models loaded successfully")
+        logger.info("✅ Standard models loaded successfully")
         return True
         
     except Exception as e:

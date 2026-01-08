@@ -6,8 +6,9 @@ A machine learning system that automatically assesses programming problem diffic
 
 ## 🎯 Key Features
 
-- **Dual Prediction Models**: Random Forest classifier for difficulty categories and regressor for numerical scores
-- **Advanced Text Analysis**: TF-IDF vectorization combined with statistical features (text length, mathematical symbols, keyword frequency)
+- **Classification**: `RandomForestClassifier` (optimized for accuracy)
+- **Regression**: `GradientBoostingRegressor` (optimized to predict exact scores)
+- **Features**: Hybrid approach using TF-IDF vectors (2000 features) + statistical features (text length, mathematical symbols, keyword frequency)
 - **Modern Web Interface**: React-based UI with real-time predictions and beautiful visualizations
 - **Robust ML Pipeline**: Complete feature extraction, model training, and evaluation pipeline
 - **Production-Ready API**: Flask backend with comprehensive error handling and model persistence

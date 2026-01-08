@@ -47,10 +47,9 @@ I used TF-IDF to turn the text into numbers (vectors). This captures the rarity 
 
 I chose **Random Forest** for this project because it handles this kind of mixed data (numerical counts + text vectors) really well and is less likely to overfit than a single Decision Tree.
 
-*   **Classifier:** To predict the label (Easy/Medium/Hard).
-*   **Regressor:** To predict the exact score (1-10).
-
-I trained both models with 100 decision trees each.
+*   **Classifier:** Random Forest Classifier (300 trees) to predict difficulty category.
+*   **Regressor:** Gradient Boosting Regressor (500 estimators) to predict scores.
+*   **Feature Stacking**: To solve the "Hard problem, Low score" disconnect, I implemented **Stacked Generalization**. The probabilities from the Classifier (e.g., `P(Hard)=0.9`) are fed as *extra features* into the Regressor. This allows the Regressor to learn that high confidence in "Hard" should correlate with higher scores (7-10), without using rigid rules.
 
 ## 6. Project Setup
 

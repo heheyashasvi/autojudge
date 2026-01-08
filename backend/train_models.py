@@ -60,9 +60,16 @@ def main():
     )
     
     # Evaluate on test set
+    # Evaluate on test set
     print("📊 Evaluating on test set...")
+    
+    # Need to stack features for regressor evaluation just like in AutoJudgePredictor.predict
+    import numpy as np
+    test_class_probs = predictor.classifier.predict_proba(test_features)
+    test_features_aug = np.hstack((test_features, test_class_probs))
+    
     test_class_metrics = predictor.classifier.evaluate(test_features, test_labels['class'])
-    test_reg_metrics = predictor.regressor.evaluate(test_features, test_labels['score'])
+    test_reg_metrics = predictor.regressor.evaluate(test_features_aug, test_labels['score'])
     
     # Print results
     print("\n" + "="*50)

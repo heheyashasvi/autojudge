@@ -2,7 +2,7 @@
 Machine learning models for AutoJudge system.
 """
 import numpy as np
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingRegressor
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 import joblib
@@ -34,7 +34,8 @@ class DifficultyClassifier:
             max_depth=None,
             min_samples_split=2,
             min_samples_leaf=1,
-            class_weight='balanced'  # Handle class imbalance
+            class_weight='balanced',  # Handle class imbalance
+            oob_score=True  # Enable OOB for stacking
         )
         self.is_trained = False
         self.classes = ['Easy', 'Medium', 'Hard']
@@ -131,23 +132,25 @@ class DifficultyClassifier:
 
 class DifficultyRegressor:
     """
-    Random Forest regressor for difficulty score prediction.
+    Gradient Boosting regressor for difficulty score prediction.
     """
     
-    def __init__(self, n_estimators: int = 100, random_state: int = 42):
+    def __init__(self, n_estimators: int = 500, random_state: int = 42):
         """
         Initialize regressor.
         
         Args:
-            n_estimators: Number of trees in the forest
+            n_estimators: Number of boosting stages to perform
             random_state: Random seed for reproducibility
         """
-        self.model = RandomForestRegressor(
+        self.model = GradientBoostingRegressor(
             n_estimators=n_estimators,
+            learning_rate=0.05,
+            max_depth=5,
+            min_samples_split=5,
+            min_samples_leaf=2,
             random_state=random_state,
-            max_depth=None,
-            min_samples_split=2,
-            min_samples_leaf=1
+            loss='squared_error'
         )
         self.is_trained = False
     
@@ -242,7 +245,7 @@ class AutoJudgePredictor:
         
     def train(self, features: np.ndarray, class_labels: List[str], scores: List[float]) -> Tuple[ClassificationMetrics, RegressionMetrics]:
         """
-        Train both models.
+        Train both models with stacking.
         
         Args:
             features: Feature matrix
@@ -252,13 +255,37 @@ class AutoJudgePredictor:
         Returns:
             Tuple of (classification_metrics, regression_metrics)
         """
-        # Train models
+        # Train classifier first
         self.classifier.train(features, class_labels)
-        self.regressor.train(features, scores)
         
-        # Evaluate on training data (for monitoring)
+        # STACKING: Use classifier outputs as features for regressor
+        # During training, we use Out-of-Bag (OOB) estimates to prevent data leakage/overfitting
+        # If OOB is not available (e.g. not enough trees), we fallback to predict_proba (less ideal but functional)
+        try:
+            if hasattr(self.classifier.model, "oob_decision_function_"):
+                logger.info("Using OOB estimates for regressor stacking")
+                class_probs = self.classifier.model.oob_decision_function_
+            else:
+                logger.warning("OOB not available, using standard prediction for stacking (risk of overfitting)")
+                class_probs = self.classifier.predict_proba(features)
+        except Exception as e:
+            logger.warning(f"Stacking error: {e}, using standard prediction")
+            class_probs = self.classifier.predict_proba(features)
+            
+        # Augment features: [TF-IDF Features] + [Prob_Easy, Prob_Medium, Prob_Hard]
+        features_aug = np.hstack((features, class_probs))
+        
+        # Train regressor on augmented features
+        logger.info(f"Training regressor on stacked features (Shape: {features_aug.shape})")
+        self.regressor.train(features_aug, scores)
+        
+        # Evaluate 
+        # Note: For evaluation, we use predict_proba because that's what we'll use in production
+        test_probs = self.classifier.predict_proba(features)
+        features_eval = np.hstack((features, test_probs))
+        
         class_metrics = self.classifier.evaluate(features, class_labels)
-        reg_metrics = self.regressor.evaluate(features, scores)
+        reg_metrics = self.regressor.evaluate(features_eval, scores)
         
         logger.info(f"Training completed - Classification accuracy: {class_metrics.accuracy:.3f}, Regression R²: {reg_metrics.r2_score:.3f}")
         
@@ -266,7 +293,7 @@ class AutoJudgePredictor:
     
     def predict(self, features: np.ndarray) -> List[PredictionResult]:
         """
-        Make predictions using both models.
+        Make predictions using both models with stacking.
         
         Args:
             features: Feature matrix
@@ -274,9 +301,15 @@ class AutoJudgePredictor:
         Returns:
             List of prediction results
         """
+        # 1. Get Classifier predictions
         class_predictions = self.classifier.predict(features)
-        score_predictions = self.regressor.predict(features)
         class_probabilities = self.classifier.predict_proba(features)
+        
+        # 2. Augment features with class probabilities
+        features_aug = np.hstack((features, class_probabilities))
+        
+        # 3. Get Regressor predictions using augmented features
+        score_predictions = self.regressor.predict(features_aug)
         
         results = []
         for i in range(len(class_predictions)):

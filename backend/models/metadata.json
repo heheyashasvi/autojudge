@@ -3,9 +3,9 @@
   "test_samples": 823,
   "features": 2020,
   "test_accuracy": 0.528554070473876,
-  "test_r2": -0.0637400127532457,
-  "test_mae": 1.9179319562575943,
-  "test_rmse": 2.25969297100464,
+  "test_r2": -0.08399219546522296,
+  "test_mae": 1.9274088501224493,
+  "test_rmse": 2.2811023114416478,
   "class_distribution": {
     "Easy": 1552,
     "Medium": 1552,
