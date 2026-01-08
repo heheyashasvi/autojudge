@@ -20,7 +20,7 @@ class DifficultyClassifier:
     Random Forest classifier for difficulty prediction.
     """
     
-    def __init__(self, n_estimators: int = 100, random_state: int = 42):
+    def __init__(self, n_estimators: int = 300, random_state: int = 42):
         """
         Initialize classifier.
         

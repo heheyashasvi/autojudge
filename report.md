@@ -58,15 +58,36 @@ I built this project locally on my Mac. Here is the tech stack I used:
 *   **Languages:** Python (for ML) and TypeScript/React (for the UI).
 *   **Libraries:** Scikit-learn, Flask, Numpy, Pandas.
 
-## 7. Results
+### 7. Results and Evaluation
 
-After training, I evaluated the model on the test set that it had never seen before.
+The trained model was evaluated on the test set (20% split). The results below show the performance of our **improved** models.
 
-**Classification Performance:**
-The model reached an accuracy of about **51.6%**. While this might sound low, "difficulty" is very subjective even for humans. The model was quite good at distinguishing straightforward "Easy" problems from complex "Hard" ones, though it sometimes confused "Medium" with the other two categories.
+#### Classification Metrics (Difficulty Category)
+Our Random Forest classifier achieved a test accuracy of **52.9%**, which is a significant improvement over baseline guessing (33%).
 
-**Regression Performance:**
-*   **MAE (Mean Absolute Error):** 1.90. This means on a scale of 1-10, the model's prediction is usually within 2 points of the actual score.
+*   **Overall Accuracy:** 52.9%
+*   **Precision:**
+    *   Easy: 0.52
+    *   Medium: 0.41
+    *   Hard: 0.56
+*   **Recall:**
+    *   Easy: 0.35
+    *   Medium: 0.19
+    *   Hard: 0.84
+*   **F1-Score:**
+    *   Easy: 0.42
+    *   Medium: 0.26
+    *   Hard: 0.67
+
+These results indicate that the model is particularly good at identifying "Hard" problems. "Medium" problems remain the most challenging to classify correctly, likely because they share features with both Easy and Hard categories.
+
+#### Regression Metrics (Difficulty Score)
+The regression model predicts the exact difficulty score (1-10).
+
+*   **Mean Absolute Error (MAE):** 1.91
+*   **Root Mean Squared Error (RMSE):** 2.25
+
+On average, the model's difficulty score prediction is within ±1.9 points of the actual score.
 
 ## 8. Web Interface
 

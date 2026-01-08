@@ -1,11 +1,11 @@
 {
   "training_samples": 3289,
   "test_samples": 823,
-  "features": 520,
-  "test_accuracy": 0.5164034021871203,
-  "test_r2": -0.0429595746721434,
-  "test_mae": 1.8968327663021467,
-  "test_rmse": 2.2375122650239736,
+  "features": 2020,
+  "test_accuracy": 0.528554070473876,
+  "test_r2": -0.057767329648925836,
+  "test_mae": 1.9122041312272173,
+  "test_rmse": 2.2533401835916975,
   "class_distribution": {
     "Easy": 613,
     "Medium": 1124,

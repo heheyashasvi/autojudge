@@ -17,7 +17,7 @@ class FeatureExtractor:
     Extracts features from programming problem text.
     """
     
-    def __init__(self, max_features: int = 1000):
+    def __init__(self, max_features: int = 2000):
         """
         Initialize feature extractor.
         

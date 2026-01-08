@@ -40,7 +40,7 @@ def main():
     
     # Extract features
     print("🔧 Extracting features...")
-    feature_extractor = FeatureExtractor(max_features=500)  # Reduced for speed
+    feature_extractor = FeatureExtractor() # Use class defaults
     
     train_features = feature_extractor.fit_transform(train_problems)
     test_features = feature_extractor.transform(test_problems)
