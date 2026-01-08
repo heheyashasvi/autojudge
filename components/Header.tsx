@@ -15,11 +15,11 @@ const Header: React.FC = () => {
           </div>
         </div>
         <nav className="hidden md:flex gap-6 items-center">
-          <a href="#" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">Documentation</a>
-          <a href="#" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">Dataset</a>
-          <button className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full text-sm font-bold hover:bg-indigo-100 transition-all">
+          <a href="https://github.com/heheyashasvi/autojudge#readme" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">Documentation</a>
+          <a href="https://github.com/heheyashasvi/autojudge/tree/main/backend/data" target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-gray-600 hover:text-indigo-600 transition-colors">Dataset</a>
+          <a href="https://github.com/heheyashasvi/autojudge" target="_blank" rel="noopener noreferrer" className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-full text-sm font-bold hover:bg-indigo-100 transition-all">
             GitHub Repo
-          </button>
+          </a>
         </nav>
       </div>
     </header>

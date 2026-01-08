@@ -20,7 +20,7 @@ def main():
     print("🚀 Starting AutoJudge model training...")
     
     # Load training data
-    train_path = "data/train_dataset.jsonl"
+    train_path = "data/balanced_train.jsonl"
     test_path = "data/test_dataset.jsonl"
     
     if not Path(train_path).exists():

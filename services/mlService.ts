@@ -1,4 +1,5 @@
-import { ProblemData, PredictionResult } from "../types";
+import { ProblemData, PredictionResult, DifficultyClass } from "../types";
+import { enrichPrediction } from "./geminiService";
 
 const ML_BACKEND_URL = "http://localhost:5001";
 
@@ -52,30 +53,46 @@ export async function predictDifficulty(data: ProblemData): Promise<PredictionRe
       throw new Error(result.error || "Prediction failed");
     }
 
+    // Start enrichment in parallel but await it (or handle it)
+    // We want to return the result with enrichment if possible
+    let enrichment: Partial<PredictionResult> = {};
+    try {
+      enrichment = await enrichPrediction(
+        data,
+        result.difficulty_class,
+        result.difficulty_score
+      );
+    } catch (e) {
+      console.warn("Enrichment failed, falling back to static rules", e);
+    }
+
     // Convert ML backend response to frontend format
+    // Prefer enrichment data, fallback to static rules
     return {
       problemClass: result.difficulty_class,
       problemScore: result.difficulty_score,
-      reasoning: `Predicted using trained Random Forest models with ${result.confidence ? `${(result.confidence * 100).toFixed(1)}% confidence` : 'high accuracy'}. Processing time: ${result.processing_time}s`,
-      keywords: generateKeywords(data),
-      complexityAnalysis: {
+      reasoning: enrichment.reasoning || `Predicted using trained Random Forest models with ${result.confidence ? `${(result.confidence * 100).toFixed(1)}% confidence` : 'high accuracy'}. Processing time: ${result.processing_time}s`,
+      keywords: enrichment.keywords?.length ? enrichment.keywords : generateKeywords(data),
+
+      complexityAnalysis: enrichment.complexityAnalysis || {
         time: estimateTimeComplexity(result.difficulty_class),
         space: estimateSpaceComplexity(result.difficulty_class),
         implementationEffort: mapScoreToEffort(result.difficulty_score),
         algorithmicDepth: mapScoreToDepth(result.difficulty_score),
       },
-      verdict: generateVerdict(result.difficulty_class, result.difficulty_score),
-      pitfalls: generatePitfalls(result.difficulty_class),
-      suggestions: generateSuggestions(result.difficulty_class),
-    };
+
+      verdict: enrichment.verdict || generateVerdict(result.difficulty_class, result.difficulty_score),
+      pitfalls: enrichment.pitfalls?.length ? enrichment.pitfalls : generatePitfalls(result.difficulty_class),
+      suggestions: enrichment.suggestions?.length ? enrichment.suggestions : generateSuggestions(result.difficulty_class),
+    } as PredictionResult;
   } catch (error) {
     console.error("ML Backend Error:", error);
-    
+
     // Check if backend is running
     if (error instanceof TypeError && error.message.includes('fetch')) {
       throw new Error("ML Backend is not running. Please start the Flask server with: python backend/app.py (runs on port 5001)");
     }
-    
+
     throw new Error(`ML prediction failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
 }
@@ -83,11 +100,11 @@ export async function predictDifficulty(data: ProblemData): Promise<PredictionRe
 export async function getModelInfo(): Promise<MLModelInfo> {
   try {
     const response = await fetch(`${ML_BACKEND_URL}/model-info`);
-    
+
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
-    
+
     const result = await response.json();
     return result.model_info;
   } catch (error) {
@@ -110,7 +127,7 @@ export async function checkBackendHealth(): Promise<boolean> {
 function generateKeywords(data: ProblemData): string[] {
   const text = `${data.title} ${data.description} ${data.inputDescription} ${data.outputDescription}`.toLowerCase();
   const keywords: string[] = [];
-  
+
   // Algorithm keywords
   if (text.includes('sort') || text.includes('order')) keywords.push('sorting');
   if (text.includes('graph') || text.includes('node') || text.includes('edge')) keywords.push('graph');
@@ -122,7 +139,7 @@ function generateKeywords(data: ProblemData): string[] {
   if (text.includes('math') || text.includes('number') || text.includes('calculate')) keywords.push('mathematics');
   if (text.includes('search') || text.includes('find')) keywords.push('search');
   if (text.includes('recursive') || text.includes('recursion')) keywords.push('recursion');
-  
+
   return keywords.length > 0 ? keywords : ['general'];
 }
 
@@ -170,7 +187,7 @@ function generateVerdict(difficulty: string, score: number): string {
       "Only the brave dare attempt this challenge."
     ]
   };
-  
+
   const options = verdicts[difficulty as keyof typeof verdicts] || verdicts.Medium;
   return options[Math.floor(Math.random() * options.length)];
 }
@@ -195,7 +212,7 @@ function generatePitfalls(difficulty: string): string[] {
       "Implementation details matter significantly"
     ]
   };
-  
+
   return pitfalls[difficulty as keyof typeof pitfalls] || pitfalls.Medium;
 }
 
@@ -219,6 +236,6 @@ function generateSuggestions(difficulty: string): string[] {
       "Test with multiple complex examples"
     ]
   };
-  
+
   return suggestions[difficulty as keyof typeof suggestions] || suggestions.Medium;
 }

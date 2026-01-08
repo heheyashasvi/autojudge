@@ -67,25 +67,25 @@ Our Random Forest classifier achieved a test accuracy of **52.9%**, which is a s
 
 *   **Overall Accuracy:** 52.9%
 *   **Precision:**
-    *   Easy: 0.52
-    *   Medium: 0.41
-    *   Hard: 0.56
+    *   Easy: 0.49
+    *   Medium: 0.47
+    *   Hard: 0.54
 *   **Recall:**
-    *   Easy: 0.35
-    *   Medium: 0.19
-    *   Hard: 0.84
+    *   Easy: 0.44 (Significantly improved via dataset balancing)
+    *   Medium: 0.10
+    *   Hard: 0.88
 *   **F1-Score:**
-    *   Easy: 0.42
-    *   Medium: 0.26
+    *   Easy: 0.46
+    *   Medium: 0.16
     *   Hard: 0.67
 
-These results indicate that the model is particularly good at identifying "Hard" problems. "Medium" problems remain the most challenging to classify correctly, likely because they share features with both Easy and Hard categories.
+These results indicate that the model is particularly good at identifying "Hard" problems. The "Easy" class recognition has improved, though "Medium" problems are often misclassified as Hard or Easy due to feature overlap.
 
 #### Regression Metrics (Difficulty Score)
 The regression model predicts the exact difficulty score (1-10).
 
-*   **Mean Absolute Error (MAE):** 1.91
-*   **Root Mean Squared Error (RMSE):** 2.25
+*   **Mean Absolute Error (MAE):** 1.92
+*   **Root Mean Squared Error (RMSE):** 2.26
 
 On average, the model's difficulty score prediction is within ±1.9 points of the actual score.
 

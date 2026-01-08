@@ -198,15 +198,15 @@ This will:
 ## 📈 Performance Metrics
 
 ### Classification Results
-- **Accuracy**: 51.6%
-- **Precision**: Varies by class (Easy: 0.45, Medium: 0.52, Hard: 0.54)
-- **Recall**: Balanced across classes
-- **F1-Score**: Weighted average of 0.51
+- **Accuracy**: 52.9%
+- **Precision**: Varies by class (Easy: 0.49, Medium: 0.47, Hard: 0.54)
+- **Recall**: Improved for Easy class (Easy: 0.44, Medium: 0.10, Hard: 0.88)
+- **F1-Score**: Weighted average of 0.52
 
 ### Regression Results
-- **Mean Absolute Error**: 1.90
-- **Root Mean Square Error**: 2.24
-- **R² Score**: -0.043 (indicates room for improvement)
+- **Mean Absolute Error**: 1.92
+- **Root Mean Square Error**: 2.26
+- **R² Score**: -0.064
 
 ### Feature Importance
 Top contributing features:
