@@ -245,7 +245,7 @@ For questions or suggestions, please open an issue or contact the development te
 ## 🎥 Demo Video
 
 Watch a quick demonstration of AutoJudge in action:
-[Link to Demo Video](YOUR_VIDEO_LINK_HERE)
+[Watch Demo Video](https://drive.google.com/drive/folders/10Acx2T0H6mZBe7AE2a_QgGQxTm4Vf99g?usp=share_link)
 
 ## 👤 Author
 
