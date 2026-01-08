@@ -13,7 +13,7 @@ This tool is designed to help problem setters balance their contests and to help
 
 ## 2. Dataset Overview
 
-To train the model, I collected a dataset of about 4,112 competitive programming problems. I sourced these from various online coding platforms to get a good variety of topics and writing styles.
+To train the model, I utilized the provided dataset containing 4,112 competitive programming problems. This ensures the model is trained on the standard benchmark data required for the project.
 
 Each entry in the dataset looks like this:
 *   **Problem Text:** The title, description, and input/output examples.
